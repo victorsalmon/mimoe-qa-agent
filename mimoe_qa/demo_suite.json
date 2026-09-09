@@ -1,0 +1,8 @@
+[
+  {"id":"health","description":"Service reports healthy","path":"/health","expected_status":200,"expected_json":{"status":"ok"}},
+  {"id":"existing-item","description":"Existing item returns its catalog details","path":"/items/1","expected_status":200,"expected_json":{"id":1,"name":"Notebook","price":5}},
+  {"id":"missing-item","description":"Missing item must return HTTP 404","path":"/items/999","expected_status":404,"expected_json":{"error":"Item not found"}},
+  {"id":"valid-quote","description":"Two items cost ten units","path":"/quote?quantity=2","expected_status":200,"expected_json":{"quantity":2,"total":10}},
+  {"id":"negative-quantity","description":"Negative quantity must return HTTP 400","path":"/quote?quantity=-1","expected_status":400,"expected_json":{"error":"Quantity must be nonnegative"}},
+  {"id":"invalid-quantity","description":"Non-numeric quantity is rejected","path":"/quote?quantity=abc","expected_status":400,"expected_json":{"error":"Quantity must be an integer"}}
+]

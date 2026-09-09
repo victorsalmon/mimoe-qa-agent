@@ -1,0 +1,9 @@
+[
+  {
+    "id": "health",
+    "description": "Service reports healthy",
+    "path": "/health",
+    "expected_status": 200,
+    "expected_json": {"status": "ok"}
+  }
+]
