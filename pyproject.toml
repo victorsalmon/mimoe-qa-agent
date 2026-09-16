@@ -10,6 +10,12 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.6",
+    "black>=24.0",
+]
+
 [project.scripts]
 mimoe-qa = "mimoe_qa.cli:main"
 
@@ -18,3 +24,12 @@ include = ["mimoe_qa*"]
 
 [tool.setuptools.package-data]
 mimoe_qa = ["demo_suite.json"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+extend-select = ["E501"]
+
+[tool.black]
+line-length = 120
