@@ -1,7 +1,7 @@
 """Bounded agent workflow: execute checks, select failures, analyze, report."""
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Protocol
 
 from .checks import Check, CheckResult, run_check
@@ -48,4 +48,4 @@ def run_agent(base_url: str, checks: list[Check], analyst: Analyst | None,
             except RequestError as exc:
                 errors[result.check.id] = str(exc)
                 break
-    return RunReport(datetime.now(timezone.utc).isoformat(), results, analysis, errors, model)
+    return RunReport(datetime.now(UTC).isoformat(), results, analysis, errors, model)

@@ -1,10 +1,10 @@
 """Exercise local HTTP failures and validate the mimOE request contract."""
 
+import json
+import unittest
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import json
 from threading import Thread
-import unittest
 from unittest.mock import patch
 
 from mimoe_qa.config import Settings, local_url
@@ -30,7 +30,8 @@ def fixture_server():
             self.server.captured = (self.path, self.headers["Authorization"], body)
             self.send_response(200)
             self.end_headers()
-            self.wfile.write(json.dumps({"choices": [{"message": {"content": "Observed defect"}, "finish_reason": "stop"}]}).encode())
+            payload = {"choices": [{"message": {"content": "Observed defect"}, "finish_reason": "stop"}]}
+            self.wfile.write(json.dumps(payload).encode())
 
         def log_message(self, *args):
             pass
@@ -50,7 +51,11 @@ class BoundaryTests(unittest.TestCase):
     def test_local_url_policy(self):
         for url in ("http://localhost:8083", "http://10.10.10.175:8083", "http://127.0.0.1", "http://[::1]:8083"):
             self.assertEqual(local_url(url), url)
-        for url in ("https://example.com", "http://8.8.8.8", "file:///tmp/x", "http://localhost:bad", "http://u:p@localhost", "http://0.0.0.0", "http://169.254.169.254", "http://localhost?q=x"):
+        bad_urls = (
+            "https://example.com", "http://8.8.8.8", "file:///tmp/x", "http://localhost:bad",
+            "http://u:p@localhost", "http://0.0.0.0", "http://169.254.169.254", "http://localhost?q=x",
+        )
+        for url in bad_urls:
             with self.subTest(url=url), self.assertRaises(ValueError):
                 local_url(url)
 
@@ -90,15 +95,19 @@ class BoundaryTests(unittest.TestCase):
     def test_malformed_completions_are_rejected(self):
         client = MimOEClient(Settings("http://localhost", "model", "test-key"))
         for raw in ({}, {"choices": []}, {"choices": [{"message": {"content": ""}}]}, None):
-            with patch("mimoe_qa.inference.request", return_value=Response(200, json.dumps(raw))):
-                with self.assertRaises(RequestError):
-                    client.complete("Hello")
+            with (
+                patch("mimoe_qa.inference.request", return_value=Response(200, json.dumps(raw))),
+                self.assertRaises(RequestError),
+            ):
+                client.complete("Hello")
 
     def test_model_http_error_has_no_raw_body(self):
         client = MimOEClient(Settings("http://localhost", "model", "test-key"))
-        with patch("mimoe_qa.inference.request", return_value=Response(401, "secret-token")):
-            with self.assertRaisesRegex(RequestError, "HTTP 401") as raised:
-                client.complete("Hello")
+        with (
+            patch("mimoe_qa.inference.request", return_value=Response(401, "secret-token")),
+            self.assertRaisesRegex(RequestError, "HTTP 401") as raised,
+        ):
+            client.complete("Hello")
         self.assertNotIn("secret-token", str(raised.exception))
 
     def test_token_limit_is_visible(self):
@@ -111,6 +120,8 @@ class BoundaryTests(unittest.TestCase):
         client = MimOEClient(Settings("http://localhost", "model", "test-key"))
         with patch("mimoe_qa.inference.request", return_value=Response(200, '{"data":[{"id":"model"}]}')):
             self.assertEqual(client.models(), ["model"])
-        with patch("mimoe_qa.inference.request", return_value=Response(200, '{"data":[null]}')):
-            with self.assertRaises(RequestError):
-                client.models()
+        with (
+            patch("mimoe_qa.inference.request", return_value=Response(200, '{"data":[null]}')),
+            self.assertRaises(RequestError),
+        ):
+            client.models()

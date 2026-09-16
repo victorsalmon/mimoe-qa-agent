@@ -1,11 +1,11 @@
 """Verify outcomes against real local HTTP responses and injected inference."""
 
-from contextlib import redirect_stdout, redirect_stderr
-from io import StringIO
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from mimoe_qa.agent import run_agent
@@ -117,11 +117,11 @@ class SuiteTests(unittest.TestCase):
     def test_rejects_origin_override_paths(self):
         for value in ("//example.com/", "https://example.com/", "/foo#bar", "/foo\nbar", "/\\evil"):
             with self.subTest(value=value):
-                self.assert_invalid(lambda rows: rows[0].update(path=value))
+                self.assert_invalid(lambda rows, value=value: rows[0].update(path=value))
 
     def test_rejects_invalid_status_and_unknown_fields(self):
         for value in (True, "200", 600):
-            self.assert_invalid(lambda rows: rows[0].update(expected_status=value))
+            self.assert_invalid(lambda rows, value=value: rows[0].update(expected_status=value))
         self.assert_invalid(lambda rows: rows[0].update(method="POST"))
 
     def test_rejects_empty_suite(self):

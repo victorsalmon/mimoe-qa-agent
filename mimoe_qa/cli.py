@@ -1,9 +1,9 @@
 """User entry points and dependency wiring; business logic lives in modules."""
 
 import argparse
+import sys
 from contextlib import nullcontext
 from pathlib import Path
-import sys
 
 from .agent import run_agent
 from .checks import load_suite
@@ -19,8 +19,11 @@ def main(argv: list[str] | None = None) -> int:
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("doctor", help="Verify model discovery and a real completion.")
     for name in ("demo", "run"):
-        command = sub.add_parser(name, help="Run the included buggy API." if name == "demo" else "Check a local API using a JSON suite.")
-        command.add_argument("--output", type=Path, default=Path("reports/latest"), help="Report directory; existing report files are replaced.")
+        help_text = "Run the included buggy API." if name == "demo" else "Check a local API using a JSON suite."
+        command = sub.add_parser(name, help=help_text)
+        command.add_argument(
+            "--output", type=Path, default=Path("reports/latest"),
+            help="Report directory; existing report files are replaced.")
         command.add_argument("--no-ai", action="store_true", help="Run deterministic checks without inference.")
         command.add_argument("--max-analyses", type=int, choices=range(1, 6), default=3, metavar="1..5")
         if name == "run":

@@ -1,9 +1,9 @@
 """Validate configuration before making requests; inference stays local."""
 
-from dataclasses import dataclass
 import ipaddress
 import math
 import os
+from dataclasses import dataclass
 from urllib.parse import urlsplit
 
 

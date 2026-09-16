@@ -1,8 +1,8 @@
 """Loopback-only fixture service with two deliberate input-validation defects."""
 
+import json
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import json
 from threading import Thread
 from urllib.parse import parse_qs, urlsplit
 

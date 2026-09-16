@@ -1,8 +1,8 @@
 """Small HTTP boundary with bounded responses, no proxies, and no redirects."""
 
+import json
 from dataclasses import dataclass
 from http.client import HTTPException
-import json
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
@@ -53,4 +53,6 @@ def request(url: str, *, payload: dict | None = None,
             return Response(response.code, body.decode("utf-8", errors="replace"))
     except (URLError, OSError, ValueError, HTTPException) as exc:
         # Do not include exception text: it can contain URLs or credentials.
-        raise RequestError(f"Local request failed ({type(exc).__name__}); check the service, address, and timeout.") from None
+        raise RequestError(
+            f"Local request failed ({type(exc).__name__}); check the service, address, and timeout."
+        ) from None

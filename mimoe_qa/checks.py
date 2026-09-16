@@ -1,9 +1,9 @@
 """Deterministic API assertions: the model never decides pass or fail."""
 
-from dataclasses import asdict, dataclass
 import json
-from pathlib import Path
 import time
+from dataclasses import asdict, dataclass
+from pathlib import Path
 from urllib.parse import urlsplit
 
 from .config import local_url
@@ -51,13 +51,16 @@ def load_suite(path: Path) -> list[Check]:
         if (not path_value.startswith("/") or path_value.startswith("//")
                 or parsed.scheme or parsed.netloc or parsed.fragment
                 or "\\" in path_value or any(ord(c) <= 32 for c in path_value)):
-            raise ValueError("Check paths must start with one slash and contain no host, fragment, whitespace, or backslash.")
+            raise ValueError(
+                "Check paths must start with one slash and contain no host, fragment, whitespace, or backslash."
+            )
         if item["id"] in ids:
             raise ValueError("Check ids must be unique.")
         if type(item["expected_status"]) is not int or not 100 <= item["expected_status"] <= 599:
             raise ValueError("expected_status must be an integer HTTP status from 100 to 599.")
         if not isinstance(item["expected_json"], dict):
-            raise ValueError("expected_json must be an object of top-level fields to compare.")
+            # load_suite's contract is ValueError (cli.py maps it to exit 2), so keep it uniform.
+            raise ValueError("expected_json must be an object of top-level fields to compare.")  # noqa: TRY004
         ids.add(item["id"])
         checks.append(Check(**item))
     return checks
@@ -79,7 +82,8 @@ def run_check(base_url: str, check: Check, timeout: float = 10.0) -> CheckResult
                 if not isinstance(actual, dict) or key not in actual:
                     errors.append(f"Missing JSON field {key!r}.")
                 elif type(actual[key]) is not type(expected) or actual[key] != expected:
-                    errors.append(f"Field {key!r}: expected {json.dumps(expected)}; received {json.dumps(actual[key])}.")
+                    errors.append(
+                        f"Field {key!r}: expected {json.dumps(expected)}; received {json.dumps(actual[key])}.")
         if errors:
             outcome = "FAIL"
     except RequestError as exc:
