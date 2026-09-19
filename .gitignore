@@ -1,9 +1,12 @@
 __pycache__/
 *.py[cod]
 .venv/
+.ruff_cache/
 *.egg-info/
 build/
 dist/
 reports/
 .env
 .worktrees/
+.backup/
+.quarantine/
